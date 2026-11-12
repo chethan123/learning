@@ -1,0 +1,1300 @@
+/*
+ * Word Builder. The three game screens are drawn on a 1024 x 768 design stage:
+ * every size is calc(var(--u) * N), N being the design px (plan 3.1). Only
+ * the grown-ups page at the end of this file uses plain px.
+ */
+
+/* ---------------------------------------------------------------- tokens */
+
+:root {
+  /* One design px. The second rule wins where dynamic viewport units exist. */
+  --u: min(100vw / 1024, 100vh / 768);
+
+  --ink: #1b2a4e;
+  --sky: #dff2ff;
+  --tray: #bfe3fb;
+  --tile: #ffd447;
+  --tile-lit: #fff3b8;
+  --card: #ffffff;
+  --blank: #fffbe8;
+  --go: #2fc27e;
+  --glow: #ffe58a;
+  --grass: #bde8b4;
+  --locked: #cfe2f2;
+  --locked-line: #8fa6c4;
+  --slot: #eef8ff;
+  --slot-line: #7c93b8;
+  --hole: #8fb4d6;
+  --book: #fff1d6;
+  --book-empty: #fff8e8;
+  --book-line: #c9a56a;
+  --book-bar: #ebd3a4;
+  --book-btn: #ff8f6b;
+  --quiet: #5b7196;
+  --focus: #5b8def;
+
+  color-scheme: light;
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --u: min(100vw / 1024, 100dvh / 768);
+  }
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--sky);
+}
+
+/* ------------------------------------------------------- screen and stage */
+
+.screen {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--sky);
+  color: var(--ink);
+  font-family: "Andika", "Comic Sans MS", "Trebuchet MS", sans-serif;
+}
+
+.screen--stickers {
+  background: var(--book);
+}
+
+.stage {
+  /* Cards and tiles share their sizes through --k; only the frame changes it. */
+  --k: 1;
+  position: relative;
+  flex: none;
+  width: calc(var(--u) * 1024);
+  height: calc(var(--u) * 768);
+}
+
+:where(.screen) button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+:where(.screen) button:disabled {
+  cursor: default;
+}
+
+:where(.screen) img {
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.screen :focus-visible {
+  outline: calc(var(--u) * 4) solid var(--focus);
+  outline-offset: calc(var(--u) * 4);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/*
+ * Raised elements: a solid ink border and a hard offset shadow of --depth
+ * design px. Pressed: down by the offset, shadow gone.
+ */
+.raised {
+  box-shadow: 0 calc(var(--u) * var(--depth)) 0 var(--ink);
+}
+
+button.raised:active {
+  translate: 0 calc(var(--u) * var(--depth));
+  box-shadow: none;
+}
+
+.round-button {
+  --depth: 6;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: calc(var(--u) * 88);
+  height: calc(var(--u) * 88);
+  border: calc(var(--u) * 4) solid var(--ink);
+  border-radius: 50%;
+  background: var(--card);
+}
+
+.round-button--large {
+  --depth: 8;
+  width: calc(var(--u) * 104);
+  height: calc(var(--u) * 104);
+  border-width: calc(var(--u) * 5);
+}
+
+/* ------------------------------------------------------------------ icons */
+
+.icon {
+  display: block;
+  flex: none;
+  overflow: visible;
+}
+
+.i-line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.i-w3 {
+  stroke-width: 3;
+}
+
+.i-w4 {
+  stroke-width: 4;
+}
+
+.i-w5 {
+  stroke-width: 5;
+}
+
+.i-w6 {
+  stroke-width: 6;
+}
+
+.i-w8 {
+  stroke-width: 8;
+}
+
+.i-w14 {
+  stroke-width: 14;
+}
+
+.i-fill-card {
+  fill: var(--card);
+}
+
+.i-fill-tile {
+  fill: var(--tile);
+}
+
+.i-fill-ink {
+  fill: var(--ink);
+}
+
+.i-quiet {
+  fill: none;
+  stroke: var(--quiet);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.i-hand-ink {
+  fill: var(--ink);
+  stroke: var(--ink);
+  stroke-width: 9;
+  stroke-linejoin: round;
+}
+
+.i-hand-skin {
+  fill: var(--card);
+}
+
+.i-trail-dots {
+  fill: none;
+  stroke: var(--card);
+  stroke-width: 22;
+  stroke-linecap: round;
+  stroke-dasharray: 2 44;
+}
+
+.icon--home {
+  width: calc(var(--u) * 48);
+  height: calc(var(--u) * 48);
+}
+
+.icon--play {
+  width: calc(var(--u) * 84);
+  height: calc(var(--u) * 92);
+}
+
+.icon--arrow {
+  width: calc(var(--u) * 112);
+  height: calc(var(--u) * 88);
+}
+
+.icon--book {
+  width: calc(var(--u) * 64);
+  height: calc(var(--u) * 64);
+}
+
+.icon--gear {
+  width: calc(var(--u) * 30);
+  height: calc(var(--u) * 30);
+}
+
+.icon--cycle {
+  width: calc(var(--u) * 62);
+  height: calc(var(--u) * 62);
+}
+
+.icon--star-small {
+  width: calc(var(--u) * 72);
+  height: calc(var(--u) * 72);
+}
+
+.icon--star-large {
+  width: calc(var(--u) * 96);
+  height: calc(var(--u) * 96);
+}
+
+/* ------------------------------------------------------------------ trail */
+
+.stage--trail {
+  overflow: hidden;
+}
+
+.trail-strip {
+  position: absolute;
+  inset: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  touch-action: pan-x;
+  scrollbar-width: none;
+}
+
+.trail-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.trail-ground {
+  position: relative;
+  width: calc(var(--u) * var(--strip));
+  height: 100%;
+}
+
+.trail-grass {
+  position: absolute;
+  top: calc(var(--u) * 548);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--grass);
+}
+
+/*
+ * The same band across the whole viewport, behind the stage: the stage is
+ * centred, so its grass starts 548 - 768 / 2 design px below the middle.
+ */
+.trail-grass-wide {
+  position: absolute;
+  top: calc(50% + var(--u) * 164);
+  right: 0;
+  left: 0;
+  height: calc(var(--u) * 220);
+  background: var(--grass);
+}
+
+.cloud {
+  position: absolute;
+  top: calc(var(--u) * var(--y));
+  left: calc(var(--u) * var(--x));
+  background: var(--card);
+}
+
+.cloud--small {
+  width: calc(var(--u) * 140);
+  height: calc(var(--u) * 48);
+  border-radius: calc(var(--u) * 24);
+}
+
+.cloud--large {
+  width: calc(var(--u) * 190);
+  height: calc(var(--u) * 60);
+  border-radius: calc(var(--u) * 30);
+}
+
+.icon--trail-path {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(var(--u) * var(--strip));
+  height: calc(var(--u) * 768);
+}
+
+/* A stone or its halo: a circle of --size centred on (--x, --y). */
+.stone,
+.stone-halo {
+  position: absolute;
+  top: calc(var(--u) * (var(--y) - var(--size) / 2));
+  left: calc(var(--u) * (var(--x) - var(--size) / 2));
+  box-sizing: border-box;
+  width: calc(var(--u) * var(--size));
+  height: calc(var(--u) * var(--size));
+  border-radius: 50%;
+}
+
+.stone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stone--done {
+  --size: 132;
+  --depth: 8;
+  overflow: hidden;
+  border: calc(var(--u) * 5) solid var(--ink);
+  background: var(--card);
+}
+
+.stone-picture {
+  width: calc(var(--u) * 104);
+  height: calc(var(--u) * 104);
+  object-fit: contain;
+}
+
+.stone--current {
+  --size: 184;
+  --depth: 12;
+  padding-left: calc(var(--u) * 14);
+  border: calc(var(--u) * 6) solid var(--ink);
+  background: var(--go);
+}
+
+.stone--locked {
+  --size: 116;
+  border: calc(var(--u) * 5) dashed var(--locked-line);
+  background: var(--locked);
+}
+
+.stone--locked.is-open {
+  padding-left: calc(var(--u) * 6);
+}
+
+.stone--locked .icon--play {
+  width: calc(var(--u) * 42);
+  height: calc(var(--u) * 46);
+}
+
+.stone-halo {
+  --size: 216;
+  background: var(--glow);
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+
+.stone-halo.is-on {
+  opacity: 1;
+  animation: halo-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes halo-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+.mascot {
+  position: absolute;
+  top: calc(var(--u) * var(--top));
+  left: calc(var(--u) * (var(--x) - 56));
+  z-index: 3;
+  box-sizing: border-box;
+  width: calc(var(--u) * 112);
+  height: calc(var(--u) * 112);
+  overflow: hidden;
+  border: calc(var(--u) * 5) solid var(--ink);
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: 0 calc(var(--u) * 6) 0 var(--ink);
+  pointer-events: none;
+}
+
+.mascot-picture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sticker-book-button {
+  --depth: 8;
+  position: absolute;
+  top: calc(var(--u) * 28);
+  left: calc(var(--u) * 892);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: calc(var(--u) * 104);
+  height: calc(var(--u) * 104);
+  border: calc(var(--u) * 5) solid var(--ink);
+  border-radius: calc(var(--u) * 28);
+  background: var(--book-btn);
+}
+
+.grown-ups {
+  position: absolute;
+  top: calc(var(--u) * 28);
+  left: calc(var(--u) * 28);
+  width: calc(var(--u) * 60);
+  height: calc(var(--u) * 60);
+}
+
+.grown-ups-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  border: calc(var(--u) * 3) solid var(--quiet);
+  border-radius: 50%;
+  background: var(--slot);
+}
+
+.icon--hold-ring {
+  position: absolute;
+  top: calc(var(--u) * -10);
+  left: calc(var(--u) * -10);
+  width: calc(var(--u) * 80);
+  height: calc(var(--u) * 80);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.grown-ups.is-held .icon--hold-ring {
+  opacity: 1;
+}
+
+.hold-ring-track {
+  fill: none;
+  stroke: var(--quiet);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+}
+
+/* ------------------------------------------------------------------- play */
+
+.play-top {
+  position: absolute;
+  top: calc(var(--u) * 28);
+  right: calc(var(--u) * 40);
+  left: calc(var(--u) * 40);
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: calc(var(--u) * 128);
+}
+
+.play-top-end {
+  display: flex;
+  justify-content: flex-end;
+  min-width: calc(var(--u) * 88);
+}
+
+.goals {
+  display: flex;
+  gap: calc(var(--u) * 20);
+  align-items: center;
+}
+
+.goal {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: calc(var(--u) * 128);
+  height: calc(var(--u) * 128);
+  overflow: hidden;
+  border-radius: calc(var(--u) * 28);
+}
+
+.goal--found {
+  border: calc(var(--u) * 4) solid var(--ink);
+  background: var(--card);
+  box-shadow: 0 calc(var(--u) * 6) 0 var(--ink);
+}
+
+.goal--faint,
+.goal--empty {
+  border: calc(var(--u) * 5) dashed var(--slot-line);
+  background: var(--slot);
+}
+
+.goal--found .goal-image {
+  width: calc(var(--u) * 116);
+  height: calc(var(--u) * 116);
+  object-fit: contain;
+}
+
+.goal--faint .goal-image {
+  width: calc(var(--u) * 112);
+  height: calc(var(--u) * 112);
+  object-fit: contain;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+}
+
+/*
+ * The frame: the blank and one card per grapheme of the fixed part. --guard
+ * shrinks a frame wider than 900; the reveal shrinks it to 0.75 and moves it
+ * under the big picture (Found.dc.html).
+ */
+.frame {
+  --guard: 1;
+  --k: var(--guard);
+  position: absolute;
+  top: calc(var(--u) * 227);
+  right: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  gap: calc(var(--u) * 20 * var(--k));
+  align-items: center;
+  justify-content: center;
+}
+
+.frame.is-reveal {
+  --k: calc(var(--guard) * 0.75);
+  top: calc(var(--u) * 582);
+  gap: calc(var(--u) * 16 * var(--guard));
+}
+
+.blank {
+  position: relative;
+  display: flex;
+  flex: none;
+  justify-content: center;
+  width: calc(var(--u) * 176 * var(--k));
+  height: calc(var(--u) * 200 * var(--k));
+}
+
+.blank.is-wide {
+  width: calc(var(--u) * 240 * var(--k));
+}
+
+/* Under the big picture the letters close up round a one-letter tile. */
+.frame.is-reveal .blank.holds-narrow {
+  width: calc(var(--u) * 176 * var(--k));
+}
+
+.blank::before {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border: calc(var(--u) * 7) dashed var(--ink);
+  border-radius: calc(var(--u) * 36 * var(--k));
+  background: var(--blank);
+  content: "";
+  transition:
+    background-color 120ms ease-out,
+    transform 120ms ease-out;
+}
+
+.blank.is-near::before {
+  background: var(--glow);
+  transform: scale(1.06);
+}
+
+.blank.is-filled::before {
+  opacity: 0;
+}
+
+.card {
+  --lit: var(--glow);
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: calc(var(--u) * 176 * var(--k));
+  height: calc(var(--u) * 200 * var(--k));
+  border: calc(var(--u) * 5) solid var(--ink);
+  border-radius: calc(var(--u) * 36 * var(--k));
+  background: var(--card);
+  box-shadow: 0 calc(var(--u) * 10 * var(--k)) 0 var(--ink);
+  font-weight: 700;
+  font-size: calc(var(--u) * 136 * var(--k));
+  line-height: 1;
+}
+
+.card.is-wide {
+  width: calc(var(--u) * 240 * var(--k));
+}
+
+.card--placed {
+  --lit: var(--tile-lit);
+  background: var(--tile);
+}
+
+.glyph {
+  display: block;
+}
+
+/* The tile half or card whose sound is playing. */
+.card.is-sounding,
+.tile.is-sounding,
+.half.is-sounding {
+  background: var(--lit);
+}
+
+/* A digraph is one sound: a bar under both letters. */
+.digraph-bar {
+  position: absolute;
+  right: 20%;
+  bottom: calc(var(--u) * 11 * var(--k));
+  left: 20%;
+  height: calc(var(--u) * 10 * var(--k));
+  border-radius: calc(var(--u) * 5 * var(--k));
+  background: var(--ink);
+}
+
+/* Lifted to leave room for the bar under a descender (ng). */
+.is-digraph .glyph {
+  translate: 0 calc(var(--u) * -24 * var(--k));
+}
+
+/* A blend is two sounds: two halves joined by a divider. */
+.card.is-blend,
+.tile.is-blend {
+  align-items: stretch;
+}
+
+.half {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.half + .half {
+  border-left: calc(var(--u) * 3) solid var(--ink);
+}
+
+.card .half:first-child {
+  border-radius: calc(var(--u) * (36 * var(--k) - 5)) 0 0
+    calc(var(--u) * (36 * var(--k) - 5));
+}
+
+.card .half:last-child {
+  border-radius: 0 calc(var(--u) * (36 * var(--k) - 5))
+    calc(var(--u) * (36 * var(--k) - 5)) 0;
+}
+
+.tray {
+  --gap: 40;
+  position: absolute;
+  right: calc(var(--u) * 40);
+  bottom: calc(var(--u) * 36);
+  left: calc(var(--u) * 40);
+  z-index: 1;
+  display: flex;
+  gap: calc(var(--u) * var(--gap));
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: calc(var(--u) * 28) calc(var(--u) * 32) calc(var(--u) * 38);
+  border-radius: calc(var(--u) * 44);
+  background: var(--tray);
+}
+
+/* A tile in the air passes over the frame. */
+.tray:has(.is-dragging, .is-flying) {
+  z-index: 5;
+}
+
+.tray-position {
+  position: relative;
+  flex: none;
+  width: calc(var(--u) * 152);
+  height: calc(var(--u) * 168);
+}
+
+.tray-position.is-wide {
+  width: calc(var(--u) * 220);
+}
+
+/* The hole: shown while the position's tile is placed, found or in the air. */
+.tray-position::before {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border: calc(var(--u) * 5) dashed var(--hole);
+  border-radius: calc(var(--u) * 32);
+  content: "";
+  opacity: 0;
+}
+
+.tray-position.is-empty::before,
+.tray-position:has(.is-dragging)::before,
+.tray-position:has(.is-flying)::before {
+  opacity: 1;
+}
+
+.tile {
+  --depth: 10;
+  --lit: var(--tile-lit);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 0 0 calc(var(--u) * 12);
+  border: calc(var(--u) * 5) solid var(--ink);
+  border-radius: calc(var(--u) * 32);
+  background: var(--tile);
+  font-weight: 700;
+  font-size: calc(var(--u) * 112);
+  line-height: 1;
+  touch-action: none;
+}
+
+.tile[hidden] {
+  display: none;
+}
+
+.tile.is-blend {
+  padding: 0;
+}
+
+.tile .half {
+  padding-bottom: calc(var(--u) * 12);
+}
+
+.tile .half:first-child {
+  border-radius: calc(var(--u) * 27) 0 0 calc(var(--u) * 27);
+}
+
+.tile .half:last-child {
+  border-radius: 0 calc(var(--u) * 27) calc(var(--u) * 27) 0;
+}
+
+.tile .digraph-bar {
+  bottom: calc(var(--u) * 13);
+}
+
+.tile.is-digraph .glyph {
+  translate: 0 calc(var(--u) * -8);
+}
+
+/* An extra tile that was tried: still there, but dim. */
+.tile.is-missed {
+  opacity: 0.4;
+}
+
+/* The hint after two misses. */
+.tile.is-hint {
+  box-shadow:
+    0 calc(var(--u) * 10) 0 var(--ink),
+    0 0 0 calc(var(--u) * 12) var(--glow);
+  animation: hint-pulse 1.2s ease-in-out infinite;
+}
+
+button.tile.is-hint:active {
+  box-shadow: 0 0 0 calc(var(--u) * 12) var(--glow);
+}
+
+@keyframes hint-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 calc(var(--u) * 10) 0 var(--ink),
+      0 0 0 calc(var(--u) * 10) var(--glow);
+  }
+
+  50% {
+    box-shadow:
+      0 calc(var(--u) * 10) 0 var(--ink),
+      0 0 0 calc(var(--u) * 18) var(--glow);
+  }
+}
+
+button.tile.is-dragging,
+button.tile.is-dragging:active {
+  z-index: 2;
+  box-shadow: 0 calc(var(--u) * 18) 0 var(--ink);
+  opacity: 1;
+  translate: none;
+  animation: none;
+  cursor: grabbing;
+}
+
+.tile--ghost {
+  box-shadow: 0 calc(var(--u) * 10) 0 var(--ink);
+  opacity: 0.75;
+}
+
+/* The hand that drags a ghost tile to the blank until the first placement. */
+.demo {
+  position: absolute;
+  top: calc(var(--u) * var(--y0));
+  left: calc(var(--u) * var(--x0));
+  z-index: 7;
+  width: calc(var(--u) * 152);
+  height: calc(var(--u) * 168);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.demo.is-wide {
+  width: calc(var(--u) * 220);
+}
+
+.demo.is-on {
+  visibility: visible;
+  animation: demo-drag 2s ease-in-out infinite;
+}
+
+.demo .icon--hand {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--u) * 88);
+  height: calc(var(--u) * 106);
+}
+
+@keyframes demo-drag {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+
+  12%,
+  24% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  68%,
+  84% {
+    opacity: 1;
+    transform: translate(
+      calc(var(--u) * var(--dx)),
+      calc(var(--u) * var(--dy))
+    );
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(
+      calc(var(--u) * var(--dx)),
+      calc(var(--u) * var(--dy))
+    );
+  }
+}
+
+@keyframes demo-blink {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  30%,
+  70% {
+    opacity: 1;
+  }
+}
+
+/* The picture of a found word, in the middle of the stage. */
+.big-picture {
+  position: absolute;
+  top: calc(var(--u) * 201);
+  left: calc(var(--u) * 344);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: calc(var(--u) * 336);
+  height: calc(var(--u) * 336);
+  overflow: hidden;
+  border: calc(var(--u) * 6) solid var(--ink);
+  border-radius: calc(var(--u) * 56);
+  background: var(--card);
+  box-shadow:
+    0 calc(var(--u) * 12) 0 var(--ink),
+    0 0 0 calc(var(--u) * 18) var(--glow);
+  rotate: -3deg;
+}
+
+.big-picture-image {
+  width: calc(var(--u) * 312);
+  height: calc(var(--u) * 312);
+  object-fit: contain;
+}
+
+/* ------------------------------------------------------------ celebration */
+
+.celebration {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: calc(var(--u) * 150) calc(var(--u) * 40) calc(var(--u) * 56);
+  pointer-events: none;
+}
+
+.celebration-stickers {
+  display: flex;
+  gap: calc(var(--u) * 24);
+  align-items: flex-end;
+}
+
+.celebration-sticker {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: calc(var(--u) * var(--size));
+  height: calc(var(--u) * var(--size));
+  overflow: hidden;
+  border: calc(var(--u) * 5) solid var(--ink);
+  border-radius: calc(var(--u) * var(--size) * 0.19);
+  background: var(--card);
+  box-shadow: 0 calc(var(--u) * 10) 0 var(--ink);
+  rotate: calc(var(--turn) * 1deg);
+  translate: 0 calc(var(--u) * var(--rise) * -1);
+}
+
+.celebration-image {
+  width: calc(var(--u) * (var(--size) - 20));
+  height: calc(var(--u) * (var(--size) - 20));
+  object-fit: contain;
+}
+
+.celebration-stars {
+  display: flex;
+  gap: calc(var(--u) * 20);
+  align-items: center;
+}
+
+.go-button {
+  --depth: 12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: calc(var(--u) * 264);
+  height: calc(var(--u) * 152);
+  border: calc(var(--u) * 6) solid var(--ink);
+  border-radius: calc(var(--u) * 76);
+  background: var(--go);
+  pointer-events: auto;
+}
+
+.confetti-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti {
+  position: absolute;
+  top: calc(var(--u) * -40);
+}
+
+.confetti--strip {
+  width: calc(var(--u) * 28);
+  height: calc(var(--u) * 14);
+  border-radius: calc(var(--u) * 4);
+}
+
+.confetti--dot {
+  width: calc(var(--u) * 22);
+  height: calc(var(--u) * 22);
+  border-radius: 50%;
+}
+
+.confetti--0 {
+  background: #ff7a59;
+}
+
+.confetti--1 {
+  background: #1e9e62;
+}
+
+.confetti--2 {
+  background: #ffd447;
+}
+
+.confetti--3 {
+  background: #5b8def;
+}
+
+/* ----------------------------------------------------------- sticker book */
+
+.stickers-header {
+  display: flex;
+  gap: calc(var(--u) * 24);
+  align-items: center;
+  box-sizing: border-box;
+  height: calc(var(--u) * 116);
+  padding: calc(var(--u) * 28) calc(var(--u) * 40) 0;
+}
+
+.stickers-scroll {
+  height: calc(var(--u) * 652);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  scrollbar-color: var(--book-line) transparent;
+  scrollbar-width: thin;
+}
+
+.stickers-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: calc(var(--u) * 24) calc(var(--u) * 20);
+  padding: calc(var(--u) * 28) calc(var(--u) * 40) calc(var(--u) * 48);
+}
+
+.sticker {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--u) * 6);
+  align-items: center;
+}
+
+.sticker-picture {
+  --depth: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: calc(var(--u) * 160);
+  height: calc(var(--u) * 160);
+  overflow: hidden;
+  border: calc(var(--u) * 5) solid var(--ink);
+  border-radius: calc(var(--u) * 32);
+  background: var(--card);
+  rotate: calc(var(--turn) * 1deg);
+}
+
+.sticker:active .sticker-picture.raised {
+  translate: 0 calc(var(--u) * var(--depth));
+  box-shadow: none;
+}
+
+.sticker--empty .sticker-picture {
+  border: calc(var(--u) * 5) dashed var(--book-line);
+  background: var(--book-empty);
+  rotate: none;
+}
+
+.sticker-image {
+  width: calc(var(--u) * 144);
+  height: calc(var(--u) * 144);
+  object-fit: contain;
+}
+
+.sticker-word {
+  font-weight: 700;
+  font-size: calc(var(--u) * 44);
+  line-height: 1.3;
+}
+
+/* Takes the height of a word, so found and empty rows line up. */
+.sticker-bar {
+  width: calc(var(--u) * 96);
+  height: calc(var(--u) * 14);
+  margin: calc(var(--u) * 22) 0 calc(var(--u) * 21.2);
+  border-radius: calc(var(--u) * 7);
+  background: var(--book-bar);
+}
+
+/* ---------------------------------------------------------- reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .stone-halo.is-on,
+  .tile.is-hint {
+    animation: none;
+  }
+
+  .demo.is-on {
+    animation: demo-blink 2s ease-in-out infinite;
+  }
+
+  .blank::before {
+    transition: none;
+  }
+
+  .blank.is-near::before {
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------- grown-ups page (in px) */
+
+.grown-ups-page {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  padding: 24px;
+  overflow-y: auto;
+  background: #ffffff;
+  color: #1a1a1a;
+  font:
+    16px / 1.5 system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  touch-action: pan-y;
+  user-select: text;
+  -webkit-user-select: text;
+  -webkit-touch-callout: default;
+}
+
+.grown-ups-page h1 {
+  margin: 16px 0;
+  font-size: 24px;
+}
+
+.grown-ups-page h2 {
+  margin: 32px 0 8px;
+  font-size: 20px;
+}
+
+.grown-ups-page a {
+  color: #1d4ed8;
+}
+
+.grown-ups-page button {
+  padding: 6px 12px;
+  border: 1px solid #6b7280;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.grown-ups-page :focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.gu-links,
+.gu-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  align-items: center;
+}
+
+.gu-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.gu-table th,
+.gu-table td {
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  text-align: left;
+  vertical-align: top;
+}
+
+.gu-group + .gu-group {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #d1d5db;
+}
+
+.gu-frame {
+  margin: 0 0 8px;
+}
+
+.gu-words,
+.gu-sounds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.gu-word {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.gu-picture {
+  display: block;
+  box-sizing: border-box;
+  width: 96px;
+  height: 96px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.gu-picture--missing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-style: dashed;
+  color: #6b7280;
+  font-size: 12px;
+  text-align: center;
+}
+
+.grown-ups-page .gu-clip.is-missing {
+  border-style: dashed;
+  color: #6b7280;
+}
