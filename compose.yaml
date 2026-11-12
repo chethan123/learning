@@ -1,0 +1,29 @@
+# Production: build the site and serve it with Caddy on :8080.
+#   docker compose up -d --build
+# Then open http://localhost:${PORT:-8080}. Rebuild after changing pages.
+
+name: learning
+
+services:
+  learning:
+    build: .
+    image: learning:latest
+    container_name: learning
+    restart: unless-stopped
+    ports:
+      # Loopback only by default. Set BIND=0.0.0.0 in .env to expose it on the
+      # network, or leave it and put a reverse proxy in front.
+      - "${BIND:-127.0.0.1}:${PORT:-8080}:8080"
+    user: "1000:1000"
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    read_only: true
+    tmpfs: ["/tmp:size=16m"]
+    mem_limit: 128m
+    cpus: "0.5"
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
