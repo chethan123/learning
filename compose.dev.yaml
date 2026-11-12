@@ -1,0 +1,22 @@
+# Development: Vite dev server with hot reload, source bind-mounted from here.
+#   docker compose -f compose.dev.yaml up
+# Then open http://localhost:${DEV_PORT:-5173}. Run with --build after
+# changing the Dockerfile; package.json changes just need a restart (npm ci).
+
+name: learning-dev
+
+services:
+  dev:
+    build:
+      context: .
+      target: dev
+    image: learning-dev:latest
+    ports:
+      - "127.0.0.1:${DEV_PORT:-5173}:5173"
+    volumes:
+      - .:/app
+      # The container's own node_modules, so it never clobbers the host's.
+      - node_modules:/app/node_modules
+
+volumes:
+  node_modules:
