@@ -16,6 +16,10 @@ research: `words-research.md`, `pictures-research.md`, `audio-research.md`, the
 voice test `kokoro-test/`, and a machine-readable copy of section 4.2 in
 `content-draft/rounds.json`.
 
+Later research (Nov 2026) on replacing the voice, colour-coding sounds, a
+recording studio and editable audio, which would revise D7, D8 and D14:
+[`AUDIO-AND-PHONICS.md`](./AUDIO-AND-PHONICS.md).
+
 ## 1. Settled decisions
 
 | #   | Decision                                                                                                                                                                                   |
